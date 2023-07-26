@@ -15,9 +15,10 @@
 - [12. Video transcoding](#12-video-transcoding)
 - [13. How To Add A Static Page To The Sidebar](#13-how-to-add-a-static-page-to-the-sidebar)
 - [14. Add Google Analytics](#14-add-google-analytics)
-- [15. Debugging email issues](#15-debugging-email-issues)
-- [16. Frequently Asked Questions](#16-frequently-asked-questions)
-- [17. Cookie consent code](#17-cookie-consent-code)
+- [15. Connect to a live streaming server](#15-connect-to-a-live-streaming-server)
+- [16. Debugging email issues](#15-debugging-email-issues)
+- [17. Frequently Asked Questions](#16-frequently-asked-questions)
+- [18. Cookie consent code](#17-cookie-consent-code)
 
 
 ## 1. Welcome
@@ -470,6 +471,20 @@ ADMINS_NOTIFICATIONS = {
 - Make the portal workflow public, but at the same time set `GLOBAL_LOGIN_REQUIRED = True` so that only logged in users can see content.
 - You can either set `REGISTER_ALLOWED = False` if you want to add members yourself or checkout options on "django-allauth settings" that affects registration in `cms/settings.py`. Eg set the portal invite only, or set email confirmation as mandatory, so that you control who registers.
 
+### 5.24 Connect to a live streaming server (Owncast, etc.)
+
+Choose which live streaming backend to use - at the moment, only Owncast is supported
+
+```
+LIVESTREAM_BACKEND = 'owncast'
+```
+
+Set the base address of the live streaming server
+
+```
+LIVESTREAM_URI = 'https://live.example.com/'
+```
+
 ## 6. Manage pages
 to be written
 
@@ -684,7 +699,24 @@ Instructions contributed by @alberto98fx
 
  ```
 
-## 15. Debugging email issues
+## 15. Connect to a live streaming server
+
+MediaCMS can be integrated with a self-hosted live streaming server using Owncast.  This allows you to display a link to a live stream at the top of the MediaCMS homepage as if it was a regular video, and it shows a Live button in the left nav menu which, when properly set up, also shows whether the stream is live or offline.  Please note that because of the way Owncast works, there is only one Owncast installation per MediaCMS and thus you can only have one live stream at a time, and the live streams are not automatically uploaded into MediaCMS.
+
+1. Download, install, and configure Owncast.  Setup of Owncast is outside the scope of this guide, but the Owncast documentation has very good directions at [Owncast Quickstart](https://owncast.online/quickstart/)
+
+2. Test out Owncast to make sure that your streaming software is properly set up to stream to it and that you can watch it as a viewer in a browser.  If this doesn't work, the tie-in to MediaCMS will not work, either.
+
+3. Add these two configuration lines as in [Section 5. Configuration](#5-configuration), customized with the address for your Owncast instance:
+
+```
+LIVESTREAM_BACKEND = 'owncast'
+LIVESTREAM_URI = 'https://live.example.com/'
+```
+
+4. Restart MediaCMS
+
+## 16. Debugging email issues
 On the [Configuration](https://github.com/mediacms-io/mediacms/blob/main/docs/admins_docs.md#5-configuration) section of this guide we've see how to edit the email settings.
 In case we are yet unable to receive email from MediaCMS, the following may help us debug the issue - in most cases it is an issue of setting the correct username, password or TLS option
 
@@ -719,7 +751,7 @@ For example, while specifying wrong password for my Gmail account I get
 SMTPAuthenticationError: (535, b'5.7.8 Username and Password not accepted. Learn more at\n5.7.8  https://support.google.com/mail/?p=BadCredentials d4sm12687785wrc.34 - gsmtp')
 ```
 
-## 16. Frequently Asked Questions
+## 17. Frequently Asked Questions
 Video is playing but preview thumbnails are not showing for large video files
 
 Chances are that the sprites file was not created correctly.
@@ -758,7 +790,7 @@ In [3]: for media in Media.objects.filter(media_type='video', sprites=''):
 this will re-create the sprites for videos that the task failed.
 
 
-## 17. Cookie consent code
+## 18. Cookie consent code
 On file `templates/components/header.html` you can find a simple cookie consent code. It is commented, so you have to remove the `{% comment %}` and `{% endcomment %}` lines in order to enable it. Or you can replace that part with your own code that handles cookie consent banners.
 
 ![Simple Cookie Consent](images/cookie_consent.png)
