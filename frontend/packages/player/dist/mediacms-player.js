@@ -142,20 +142,34 @@
       var videojsComponent = videojs.getComponent('Component');
       var videojsClickableComponent = videojs.getComponent('ClickableComponent');
       var videojsComponentButton = videojs.getComponent('Button');
-      var __MediaCMSComponent__ = videojs.extend(videojsComponent, {
-        constructor: function constructor() {
-          videojsComponent.apply(this, arguments);
+
+
+      class __MediaCMSComponent__ extends videojsComponent {
+        constructor(...args) {
+          super(...args);
           this.setAttribute('class', this.buildCSSClass());
-        },
-        buildCSSClass: function buildCSSClass() {
+        }
+
+        buildCSSClass() {
           return '';
         }
-      });
-      var __MediaCMSButtonClickableComponent__ = videojs.extend(videojsClickableComponent, {
-        buildCSSClass: function buildCSSClass() {
+      }
+
+      videojs.registerComponent('__MediaCMSComponent__', __MediaCMSComponent__);
+
+
+
+
+      class MediaCMSButtonClickableComponent extends videojsClickableComponent {
+        buildCSSClass() {
           return '';
         }
-      });
+      }
+
+      const __MediaCMSButtonClickableComponent__ = MediaCMSButtonClickableComponent;
+      videojs.registerComponent('__MediaCMSButtonClickableComponent__', __MediaCMSButtonClickableComponent__);
+
+
       var __SettingsPanelComponent__ = composeAndExtendCustomComp('vjs-settings-panel');
       var __SettingsPanelInnerComponent__ = composeAndExtendCustomComp('vjs-settings-panel-inner');
       var __SettingsPanelTitleComponent__ = composeAndExtendCustomComp('vjs-setting-panel-title');
@@ -215,20 +229,28 @@
           };
         }
       }
-      function videosjsExtendCustomComp(parent, methods) {
-        return videojs.extend(parent, methods);
-      }
       function videosjsFormatExtendObj(parent, methods) {
         return {
           extend: parent,
           methods: methods
         };
       }
+
+
+
       function videojsComposeAndExtendCustomComp(extnd, extraCSSClass, innerHtml, htmlAttr) {
         var ret = {};
+
         composeCustomCompMethods(ret, extnd, innerHtml, extraCSSClass, htmlAttr);
-        return videosjsExtendCustomComp(extnd, ret);
+
+        Object.keys(ret).forEach(function (key) {
+          extnd[key] = ret[key];
+        });
+
+        return extnd;
       }
+
+
       function composeCustomComp(extnd, extraCSSClass, innerHtml, htmlAttr) {
         var ret = {};
         composeCustomCompMethods(ret, extnd, innerHtml, extraCSSClass, htmlAttr);
@@ -307,19 +329,137 @@
               this.player_.trigger('clicked_previous_button');
             };
           }
-          videojs.registerComponent('TouchControls', videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__, 'vjs-touch-controls').methods));
-          videojs.registerComponent('TouchControlsInner', videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__).methods));
-          videojs.registerComponent('TouchPreviousButton', videojs.extend(previousButton.extend, previousButton.methods));
-          videojs.registerComponent('TouchPlayButton', videojs.extend(playButton.extend, playButton.methods));
-          videojs.registerComponent('TouchNextButton', videojs.extend(nextButton.extend, nextButton.methods));
-          videojs.registerComponent('TouchPlay', videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__, 'vjs-touch-play-button').methods));
-          if (options.controlBar.next || options.controlBar.previous) {
-            videojs.registerComponent('TouchPrevious', videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__, 'vjs-touch-previous-button' + (!options.controlBar.previous ? ' vjs-touch-disabled-button' : '')).methods));
-            videojs.registerComponent('TouchNext', videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__, 'vjs-touch-next-button' + (!options.controlBar.next ? ' vjs-touch-disabled-button' : '')).methods));
-          } else {
-            videojs.registerComponent('TouchPrevious', videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__, 'vjs-touch-previous-button' + (!options.controlBar.previous ? ' vjs-touch-hidden-button' : '')).methods));
-            videojs.registerComponent('TouchNext', videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__, 'vjs-touch-next-button' + (!options.controlBar.next ? ' vjs-touch-hidden-button' : '')).methods));
-          }
+
+
+            const touchControlsMethods = composeCustomComp(__MediaCMSComponent__, 'vjs-touch-controls').methods;
+
+            class TouchControlsCls extends __MediaCMSComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(TouchControlsCls.prototype, touchControlsMethods);
+
+            videojs.registerComponent('TouchControls', TouchControlsCls);
+
+            const touchControlsInnerMethods = composeCustomComp(__MediaCMSComponent__).methods;
+
+            class TouchControlsInnerCls extends __MediaCMSComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(TouchControlsInnerCls.prototype, touchControlsInnerMethods);
+
+            videojs.registerComponent('TouchControlsInner', TouchControlsInnerCls);
+
+            class TouchPreviousButton extends previousButton.extend {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(TouchPreviousButton.prototype, previousButton.methods);
+
+            videojs.registerComponent('TouchPreviousButton', TouchPreviousButton);
+
+            class TouchPlayButton extends playButton.extend {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(TouchPlayButton.prototype, playButton.methods);
+
+            videojs.registerComponent('TouchPlayButton', TouchPlayButton);
+
+            class TouchNextButton extends nextButton.extend {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(TouchNextButton.prototype, nextButton.methods);
+
+            videojs.registerComponent('TouchNextButton', TouchNextButton);
+
+            const touchPlayMethods = composeCustomComp(__MediaCMSComponent__, 'vjs-touch-play-button').methods;
+
+            class TouchPlayCls extends __MediaCMSComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(TouchPlayCls.prototype, touchPlayMethods);
+
+            videojs.registerComponent('TouchPlay', TouchPlayCls);
+
+
+
+
+
+
+
+            if (options.controlBar.next || options.controlBar.previous) {
+              const previousButtonClass = 'vjs-touch-previous-button' + (!options.controlBar.previous ? ' vjs-touch-disabled-button' : '');
+              const touchPreviousMethods = composeCustomComp(__MediaCMSComponent__, previousButtonClass).methods;
+
+              class TouchPreviousCls extends __MediaCMSComponent__ {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(TouchPreviousCls.prototype, touchPreviousMethods);
+
+              videojs.registerComponent('TouchPrevious', TouchPreviousCls);
+
+              const nextButtonClass = 'vjs-touch-next-button' + (!options.controlBar.next ? ' vjs-touch-disabled-button' : '');
+              const touchNextMethods = composeCustomComp(__MediaCMSComponent__, nextButtonClass).methods;
+
+              class TouchNextCls extends __MediaCMSComponent__ {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(TouchNextCls.prototype, touchNextMethods);
+
+              videojs.registerComponent('TouchNext', TouchNextCls);
+
+            } else {
+              const previousButtonClass = 'vjs-touch-previous-button' + (!options.controlBar.previous ? ' vjs-touch-hidden-button' : '');
+              const touchPreviousMethods = composeCustomComp(__MediaCMSComponent__, previousButtonClass).methods;
+
+              class TouchPreviousCls extends __MediaCMSComponent__ {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(TouchPreviousCls.prototype, touchPreviousMethods);
+
+              videojs.registerComponent('TouchPrevious', TouchPreviousCls);
+
+              const nextButtonClass = 'vjs-touch-next-button' + (!options.controlBar.next ? ' vjs-touch-hidden-button' : '');
+              const touchNextMethods = composeCustomComp(__MediaCMSComponent__, nextButtonClass).methods;
+
+              class TouchNextCls extends __MediaCMSComponent__ {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(TouchNextCls.prototype, touchNextMethods);
+
+              videojs.registerComponent('TouchNext', TouchNextCls);
+            }
+
+
+
           pluginInstanceRef.player.addChild('TouchControls');
           TouchControls = pluginInstanceRef.player.getChild('TouchControls');
           TouchControls.addChild('TouchControlsInner');
@@ -369,28 +509,66 @@
         }
         for (k in layers) {
           if (layers.hasOwnProperty(k)) {
+
             if (layers[k].content) {
-              videojs.registerComponent(compPrefix + k, videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__, layers[k].className, layers[k].content).methods));
+              const customMethods = composeCustomComp(__MediaCMSComponent__, layers[k].className, layers[k].content).methods;
+
+              class CustomComponent extends __MediaCMSComponent__ {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(CustomComponent.prototype, customMethods);
+
+              videojs.registerComponent(compPrefix + k, CustomComponent);
+
               layers[k].parent.addChild(compPrefix + k);
             }
+
           }
         }
       }
       function generateActionsAnimationsComponents(pluginInstanceRef) {
-        videojs.registerComponent('ActionsAnimations', videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__, 'vjs-actions-anim', '<span></span>').methods));
+        var customMethods = composeCustomComp(__MediaCMSComponent__, 'vjs-actions-anim', '<span></span>').methods;
+
+        class ActionsAnimations extends __MediaCMSComponent__ {
+          constructor(player, options) {
+            super(player, options);
+          }
+        }
+
+        Object.assign(ActionsAnimations.prototype, customMethods);
+
+        videojs.registerComponent('ActionsAnimations', ActionsAnimations);
+
+
+
         pluginInstanceRef.player.addChild('ActionsAnimations');
       }
       function generateLoadingSpinnerComponent(pluginInstanceRef) {
         pluginInstanceRef.player.removeChild('LoadingSpinner');
-        videojs.registerComponent('LoadingSpinner', videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__, 'vjs-loading-spinner', '<div class="spinner">\
-                        <div class="spinner-container">\
-                            <div class="spinner-rotator">\
-                                <div class="spinner-left"><div class="spinner-circle"></div></div>\
-                                <div class="spinner-right"><div class="spinner-circle"></div></div>\
-                            </div>\
-                        </div>\
-                    </div>').methods));
-        pluginInstanceRef.player.addChild('LoadingSpinner');
+        var customMethods = composeCustomComp(__MediaCMSComponent__, 'vjs-loading-spinner', `
+          <div class="spinner">
+              <div class="spinner-container">
+                  <div class="spinner-rotator">
+                      <div class="spinner-left"><div class="spinner-circle"></div></div>
+                      <div class="spinner-right"><div class="spinner-circle"></div></div>
+                  </div>
+              </div>
+          </div>
+      `).methods;
+
+      class LoadingSpinner extends __MediaCMSComponent__ {
+        constructor(player, options) {
+          super(player, options);
+        }
+      }
+
+      Object.assign(LoadingSpinner.prototype, customMethods);
+
+      videojs.registerComponent('LoadingSpinner', LoadingSpinner);
+              pluginInstanceRef.player.addChild('LoadingSpinner');
       }
       function initComponents(pluginInstanceRef, which, struct, args) {
         var k, i;
@@ -398,7 +576,19 @@
         switch (which) {
           case 'bottomBackground':
             struct.bottomBackground = null;
-            videojs.registerComponent('BottomBackground', videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__, 'vjs-bottom-bg').methods));
+            const bottomBackgroundMethods = composeCustomComp(__MediaCMSComponent__, 'vjs-bottom-bg').methods;
+
+            class BottomBackgroundCls extends __MediaCMSComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(BottomBackgroundCls.prototype, bottomBackgroundMethods);
+
+            videojs.registerComponent('BottomBackground', BottomBackgroundCls);
+
+
             break;
           case 'progressControl':
             struct.progressControl = null;
@@ -447,10 +637,57 @@
                 }
               });
             };
-            videojs.registerComponent('SubtitlesPanel', videojs.extend(tmp.extend, tmp.methods));
-            videojs.registerComponent('SubtitlesPanelInner', videojs.extend(__SettingsPanelInnerComponent__, composeCustomComp(__SettingsPanelInnerComponent__).methods));
-            videojs.registerComponent('SubtitlesMenu', videojs.extend(__SettingsMenuComponent__, composeCustomComp(__SettingsMenuComponent__).methods));
-            videojs.registerComponent('SubtitlesMenuTitle', videojs.extend(__SettingsPanelTitleComponent__, composeCustomComp(__SettingsPanelTitleComponent__, null, '<span>Subtitles</span>').methods));
+
+            class SubtitlesPanelCls extends tmp.extend {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(SubtitlesPanelCls.prototype, tmp.methods);
+
+            videojs.registerComponent('SubtitlesPanel', SubtitlesPanelCls);
+
+            const subtitlesPanelInnerMethods = composeCustomComp(__SettingsPanelInnerComponent__).methods;
+
+            class SubtitlesPanelInnerCls extends __SettingsPanelInnerComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(SubtitlesPanelInnerCls.prototype, subtitlesPanelInnerMethods);
+
+            videojs.registerComponent('SubtitlesPanelInner', SubtitlesPanelInnerCls);
+
+            const subtitlesMenuMethods = composeCustomComp(__SettingsMenuComponent__).methods;
+
+            class SubtitlesMenuCls extends __SettingsMenuComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(SubtitlesMenuCls.prototype, subtitlesMenuMethods);
+
+            videojs.registerComponent('SubtitlesMenu', SubtitlesMenuCls);
+
+            const subtitlesMenuTitleMethods = composeCustomComp(__SettingsPanelTitleComponent__, null, '<span>Subtitles</span>').methods;
+
+            class SubtitlesMenuTitleCls extends __SettingsPanelTitleComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(SubtitlesMenuTitleCls.prototype, subtitlesMenuTitleMethods);
+
+            videojs.registerComponent('SubtitlesMenuTitle', SubtitlesMenuTitleCls);
+
+
+
+
+
             i = 0;
             while (i < args.options.subtitles.languages.length) {
               k = args.options.subtitles.languages[i];
@@ -475,9 +712,28 @@
                 tmp.methods.handleClick = function () {
                   this.player_.trigger('selectedSubtitleOption', this.el_.getAttribute('data-opt'));
                 };
-                videojs.registerComponent('SubtitleOption_' + key, videojs.extend(tmp.extend, tmp.methods));
+                class SubtitleOptionCls extends tmp.extend {
+                  constructor(player, options) {
+                    super(player, options);
+                  }
+                }
+
+                Object.assign(SubtitleOptionCls.prototype, tmp.methods);
+
+                videojs.registerComponent('SubtitleOption_' + key, SubtitleOptionCls);
+
                 tmp = composeCustomComp(__SettingsMenuItemContentComponent__, null, title);
-                videojs.registerComponent('SubtitleOption_' + key + '_content', videojs.extend(tmp.extend, tmp.methods));
+
+                class SubtitleOptionContentCls extends tmp.extend {
+                  constructor(player, options) {
+                    super(player, options);
+                  }
+                }
+
+                Object.assign(SubtitleOptionContentCls.prototype, tmp.methods);
+
+                videojs.registerComponent('SubtitleOption_' + key + '_content', SubtitleOptionContentCls);
+
               })(k.srclang, k.label);
               i += 1;
             }
@@ -525,9 +781,43 @@
                 }
               });
             };
-            videojs.registerComponent('SettingsPanel', videojs.extend(tmp.extend, tmp.methods));
-            videojs.registerComponent('SettingsPanelInner', videojs.extend(__SettingsPanelInnerComponent__, composeCustomComp(__SettingsPanelInnerComponent__).methods));
-            videojs.registerComponent('SettingsMenu', videojs.extend(__SettingsMenuComponent__, composeCustomComp(__SettingsMenuComponent__).methods));
+
+
+
+            class SettingsPanelCls extends tmp.extend {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(SettingsPanelCls.prototype, tmp.methods);
+
+            videojs.registerComponent('SettingsPanel', SettingsPanelCls);
+
+            const settingsPanelInnerMethods = composeCustomComp(__SettingsPanelInnerComponent__).methods;
+
+            class SettingsPanelInnerCls extends __SettingsPanelInnerComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(SettingsPanelInnerCls.prototype, settingsPanelInnerMethods);
+
+            videojs.registerComponent('SettingsPanelInner', SettingsPanelInnerCls);
+
+            const settingsMenuMethods = composeCustomComp(__SettingsMenuComponent__).methods;
+
+            class SettingsMenuCls extends __SettingsMenuComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(SettingsMenuCls.prototype, settingsMenuMethods);
+
+            videojs.registerComponent('SettingsMenu', SettingsMenuCls);
+
             if (args.enabledPlaybackSpeedPanel) {
               struct.settingsPanel.children.settingsPanelInner.children.settingsMenu.children.selectedPlaybackSpeed = {
                 children: {
@@ -539,8 +829,30 @@
               tmp.methods.handleClick = function (ev) {
                 this.player_.trigger('openPlaybackSpeedOptions', !ev.screenX && !ev.screenY);
               };
-              videojs.registerComponent('SelectedPlaybackSpeed', videojs.extend(tmp.extend, tmp.methods));
-              videojs.registerComponent('SelectedPlaybackSpeedLabel', videojs.extend(__SettingsMenuItemLabelComponent__, composeCustomComp(__SettingsMenuItemLabelComponent__, null, 'Playback speed').methods));
+
+              class SelectedPlaybackSpeedCls extends tmp.extend {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(SelectedPlaybackSpeedCls.prototype, tmp.methods);
+
+              videojs.registerComponent('SelectedPlaybackSpeed', SelectedPlaybackSpeedCls);
+
+              const selectedPlaybackSpeedLabelMethods = composeCustomComp(__SettingsMenuItemLabelComponent__, null, 'Playback speed').methods;
+
+              class SelectedPlaybackSpeedLabelCls extends __SettingsMenuItemLabelComponent__ {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(SelectedPlaybackSpeedLabelCls.prototype, selectedPlaybackSpeedLabelMethods);
+
+              videojs.registerComponent('SelectedPlaybackSpeedLabel', SelectedPlaybackSpeedLabelCls);
+
+
               tmp = composeCustomComp(__SettingsMenuItemContentComponent__, null, args.selectedPlaybackSpeed);
               tmp.methods.constructor = function () {
                 videojsComponent.apply(this, arguments);
@@ -551,7 +863,17 @@
                   that.el_.innerHTML = this.selectedPlaybackSpeedTitle();
                 });
               };
-              videojs.registerComponent('SelectedPlaybackSpeedContent', videojs.extend(tmp.extend, tmp.methods));
+
+              class SelectedPlaybackSpeedContentCls extends tmp.extend {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(SelectedPlaybackSpeedContentCls.prototype, tmp.methods);
+
+              videojs.registerComponent('SelectedPlaybackSpeedContent', SelectedPlaybackSpeedContentCls);
+
             }
             if (args.enabledResolutionsPanel) {
               struct.settingsPanel.children.settingsPanelInner.children.settingsMenu.children.selectedResolution = {
@@ -564,8 +886,31 @@
               tmp.methods.handleClick = function (ev) {
                 this.player_.trigger('openQualityOptions', !ev.screenX && !ev.screenY);
               };
-              videojs.registerComponent('SelectedResolution', videojs.extend(tmp.extend, tmp.methods));
-              videojs.registerComponent('SelectedResolutionLabel', videojs.extend(__SettingsMenuItemLabelComponent__, composeCustomComp(__SettingsMenuItemLabelComponent__, null, 'Quality').methods));
+
+              class SelectedResolutionCls extends tmp.extend {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(SelectedResolutionCls.prototype, tmp.methods);
+
+              videojs.registerComponent('SelectedResolution', SelectedResolutionCls);
+
+              const selectedResolutionLabelMethods = composeCustomComp(__SettingsMenuItemLabelComponent__, null, 'Quality').methods;
+
+              class SelectedResolutionLabelCls extends __SettingsMenuItemLabelComponent__ {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(SelectedResolutionLabelCls.prototype, selectedResolutionLabelMethods);
+
+              videojs.registerComponent('SelectedResolutionLabel', SelectedResolutionLabelCls);
+
+
+
               tmp = composeCustomComp(__SettingsMenuItemContentComponent__, null, args.selectedResolution);
               tmp.methods.constructor = function () {
                 videojsComponent.apply(this, arguments);
@@ -576,7 +921,17 @@
                   that.el_.innerHTML = this.selectedQualityTitle();
                 });
               };
-              videojs.registerComponent('SelectedResolutionContent', videojs.extend(tmp.extend, tmp.methods));
+
+              class SelectedResolutionContentCls extends tmp.extend {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(SelectedResolutionContentCls.prototype, tmp.methods);
+
+              videojs.registerComponent('SelectedResolutionContent', SelectedResolutionContentCls);
+
             }
             break;
           case '__resolution':
@@ -627,15 +982,70 @@
                 }
               });
             };
-            videojs.registerComponent('ResolutionsPanel', videojs.extend(tmp.extend, tmp.methods));
-            videojs.registerComponent('ResolutionsPanelInner', videojs.extend(__SettingsPanelInnerComponent__, composeCustomComp(__SettingsPanelInnerComponent__).methods));
-            videojs.registerComponent('ResolutionsMenu', videojs.extend(__SettingsMenuComponent__, composeCustomComp(__SettingsMenuComponent__).methods));
-            videojs.registerComponent('ResolutionsMenuTitle', videojs.extend(__SettingsPanelTitleComponent__, composeCustomComp(__SettingsPanelTitleComponent__, 'vjs-settings-back').methods));
+
+
+            class ResolutionsPanelCls extends tmp.extend {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(ResolutionsPanelCls.prototype, tmp.methods);
+
+            videojs.registerComponent('ResolutionsPanel', ResolutionsPanelCls);
+
+            const resolutionsPanelInnerMethods = composeCustomComp(__SettingsPanelInnerComponent__).methods;
+
+            class ResolutionsPanelInnerCls extends __SettingsPanelInnerComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(ResolutionsPanelInnerCls.prototype, resolutionsPanelInnerMethods);
+
+            videojs.registerComponent('ResolutionsPanelInner', ResolutionsPanelInnerCls);
+
+            const resolutionsMenuMethods = composeCustomComp(__SettingsMenuComponent__).methods;
+
+            class ResolutionsMenuCls extends __SettingsMenuComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(ResolutionsMenuCls.prototype, resolutionsMenuMethods);
+
+            videojs.registerComponent('ResolutionsMenu', ResolutionsMenuCls);
+
+            const resolutionsMenuTitleMethods = composeCustomComp(__SettingsPanelTitleComponent__, 'vjs-settings-back').methods;
+
+            class ResolutionsMenuTitleCls extends __SettingsPanelTitleComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(ResolutionsMenuTitleCls.prototype, resolutionsMenuTitleMethods);
+
+            videojs.registerComponent('ResolutionsMenuTitle', ResolutionsMenuTitleCls);
+
+
             tmp = composeCustomComp(__MediaCMSButtonClickableComponent__, null, 'Quality');
             tmp.methods.handleClick = function (ev) {
               this.player_.trigger('closeQualityOptions', !ev.screenX && !ev.screenY);
             };
-            videojs.registerComponent('ResolutionsMenuBackButton', videojs.extend(tmp.extend, tmp.methods));
+
+            class ResolutionsMenuBackButtonCls extends tmp.extend {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(ResolutionsMenuBackButtonCls.prototype, tmp.methods);
+
+            videojs.registerComponent('ResolutionsMenuBackButton', ResolutionsMenuBackButtonCls);
+
             var resolutionKeys = function () {
               var i;
               var ret = [];
@@ -686,9 +1096,30 @@
                 tmp.methods.handleClick = function () {
                   this.player_.trigger('selectedQuality', this.el_.getAttribute('data-opt'));
                 };
-                videojs.registerComponent('ResolutionOption_' + key, videojs.extend(tmp.extend, tmp.methods));
+
+                class ResolutionOptionCls extends tmp.extend {
+                  constructor(player, options) {
+                    super(player, options);
+                  }
+                }
+
+                Object.assign(ResolutionOptionCls.prototype, tmp.methods);
+
+                videojs.registerComponent('ResolutionOption_' + key, ResolutionOptionCls);
+
                 tmp = composeCustomComp(__SettingsMenuItemContentComponent__, null, title);
-                videojs.registerComponent('ResolutionOption_' + key + '_content', videojs.extend(tmp.extend, tmp.methods));
+
+                class ResolutionOptionContentCls extends tmp.extend {
+                  constructor(player, options) {
+                    super(player, options);
+                  }
+                }
+
+                Object.assign(ResolutionOptionContentCls.prototype, tmp.methods);
+
+                videojs.registerComponent('ResolutionOption_' + key + '_content', ResolutionOptionContentCls);
+
+
               })(k, args.resolutions[k].title || k);
               i += 1;
             }
@@ -741,15 +1172,69 @@
                 }
               });
             };
-            videojs.registerComponent('PlaybackSpeedsPanel', videojs.extend(tmp.extend, tmp.methods));
-            videojs.registerComponent('PlaybackSpeedsPanelInner', videojs.extend(__SettingsPanelInnerComponent__, composeCustomComp(__SettingsPanelInnerComponent__).methods));
-            videojs.registerComponent('PlaybackSpeedsMenu', videojs.extend(__SettingsMenuComponent__, composeCustomComp(__SettingsMenuComponent__).methods));
-            videojs.registerComponent('PlaybackSpeedsMenuTitle', videojs.extend(__SettingsPanelTitleComponent__, composeCustomComp(__SettingsPanelTitleComponent__, 'vjs-settings-back').methods));
+
+            class PlaybackSpeedsPanelCls extends tmp.extend {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(PlaybackSpeedsPanelCls.prototype, tmp.methods);
+
+            videojs.registerComponent('PlaybackSpeedsPanel', PlaybackSpeedsPanelCls);
+
+            const playbackSpeedsPanelInnerMethods = composeCustomComp(__SettingsPanelInnerComponent__).methods;
+
+            class PlaybackSpeedsPanelInnerCls extends __SettingsPanelInnerComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(PlaybackSpeedsPanelInnerCls.prototype, playbackSpeedsPanelInnerMethods);
+
+            videojs.registerComponent('PlaybackSpeedsPanelInner', PlaybackSpeedsPanelInnerCls);
+
+            const playbackSpeedsMenuMethods = composeCustomComp(__SettingsMenuComponent__).methods;
+
+            class PlaybackSpeedsMenuCls extends __SettingsMenuComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(PlaybackSpeedsMenuCls.prototype, playbackSpeedsMenuMethods);
+
+            videojs.registerComponent('PlaybackSpeedsMenu', PlaybackSpeedsMenuCls);
+
+            const playbackSpeedsMenuTitleMethods = composeCustomComp(__SettingsPanelTitleComponent__, 'vjs-settings-back').methods;
+
+            class PlaybackSpeedsMenuTitleCls extends __SettingsPanelTitleComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(PlaybackSpeedsMenuTitleCls.prototype, playbackSpeedsMenuTitleMethods);
+
+            videojs.registerComponent('PlaybackSpeedsMenuTitle', PlaybackSpeedsMenuTitleCls);
+
             tmp = composeCustomComp(__MediaCMSButtonClickableComponent__, null, 'Playback speed');
             tmp.methods.handleClick = function (ev) {
               this.player_.trigger('closePlaybackSpeedOptions', !ev.screenX && !ev.screenY);
             };
-            videojs.registerComponent('PlaybackSpeedsMenuBackButton', videojs.extend(tmp.extend, tmp.methods));
+
+            class PlaybackSpeedsMenuBackButtonCls extends tmp.extend {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(PlaybackSpeedsMenuBackButtonCls.prototype, tmp.methods);
+
+            videojs.registerComponent('PlaybackSpeedsMenuBackButton', PlaybackSpeedsMenuBackButtonCls);
+
+
             for (k in args.playbackSpeeds) {
               if (args.playbackSpeeds.hasOwnProperty(k)) {
                 struct.playbackSpeedsPanel.children.playbackSpeedsPanelInner.children.playbackSpeedsMenu.children['playbackSpeedOption_' + args.playbackSpeeds[k].speed] = {
@@ -769,9 +1254,29 @@
                   tmp.methods.handleClick = function () {
                     this.player_.trigger('selectedPlaybackSpeed', this.el_.getAttribute('data-opt'));
                   };
-                  videojs.registerComponent('PlaybackSpeedOption_' + key, videojs.extend(tmp.extend, tmp.methods));
+
+                  class PlaybackSpeedOptionCls extends tmp.extend {
+                    constructor(player, options) {
+                      super(player, options);
+                    }
+                  }
+
+                  Object.assign(PlaybackSpeedOptionCls.prototype, tmp.methods);
+
+                  videojs.registerComponent('PlaybackSpeedOption_' + key, PlaybackSpeedOptionCls);
+
                   tmp = composeCustomComp(__SettingsMenuItemContentComponent__, null, title);
-                  videojs.registerComponent('PlaybackSpeedOption_' + key + '_content', videojs.extend(tmp.extend, tmp.methods));
+
+                  class PlaybackSpeedOptionContentCls extends tmp.extend {
+                    constructor(player, options) {
+                      super(player, options);
+                    }
+                  }
+
+                  Object.assign(PlaybackSpeedOptionContentCls.prototype, tmp.methods);
+
+                  videojs.registerComponent('PlaybackSpeedOption_' + key + '_content', PlaybackSpeedOptionContentCls);
+
                 })(args.playbackSpeeds[k].speed, args.playbackSpeeds[k].title || k);
               }
             }
@@ -785,7 +1290,17 @@
               tmp.methods.handleClick = function (ev) {
                 this.player_.trigger('clicked_previous_button');
               };
-              videojs.registerComponent('PreviousButton', videojs.extend(tmp.extend, tmp.methods));
+
+            class PreviousButtonCls extends tmp.extend {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(PreviousButtonCls.prototype, tmp.methods);
+
+            videojs.registerComponent('PreviousButton', PreviousButtonCls);
+
               struct.leftControls.children.previousButton = null;
             }
             if (args.options.controlBar.play) {
@@ -796,7 +1311,17 @@
               tmp.methods.handleClick = function (ev) {
                 this.player_.trigger('clicked_next_button');
               };
-              videojs.registerComponent('NextButton', videojs.extend(tmp.extend, tmp.methods));
+              class NextButtonCls extends tmp.extend {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(NextButtonCls.prototype, tmp.methods);
+
+              videojs.registerComponent('NextButton', NextButtonCls);
+
+
               struct.leftControls.children.nextButton = null;
             }
             if (args.options.controlBar.volume) {
@@ -807,7 +1332,20 @@
               struct.leftControls.children.timeDivider = null;
               struct.leftControls.children.durationDisplay = null;
             }
-            videojs.registerComponent('LeftControls', videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__, 'vjs-left-controls').methods));
+
+
+            const leftControlsMethods = composeCustomComp(__MediaCMSComponent__, 'vjs-left-controls').methods;
+
+            class LeftControlsCls extends __MediaCMSComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(LeftControlsCls.prototype, leftControlsMethods);
+
+            videojs.registerComponent('LeftControls', LeftControlsCls);
+
             break;
           case '__rightControls':
             struct.rightControls = {
@@ -828,20 +1366,52 @@
             if (args.options.controlBar.fullscreen) {
               struct.rightControls.children.fullscreenToggle = null;
             }
-            videojs.registerComponent('RightControls', videojs.extend(__MediaCMSComponent__, composeCustomComp(__MediaCMSComponent__, 'vjs-right-controls').methods));
+
+            const rightControlsMethods = composeCustomComp(__MediaCMSComponent__, 'vjs-right-controls').methods;
+
+            class RightControlsCls extends __MediaCMSComponent__ {
+              constructor(player, options) {
+                super(player, options);
+              }
+            }
+
+            Object.assign(RightControlsCls.prototype, rightControlsMethods);
+
+            videojs.registerComponent('RightControls', RightControlsCls);
+
             if (args.options.subtitles) {
               tmp = composeCustomComp(videojsComponentButton, 'vjs-subtitles-control');
               tmp.methods.handleClick = function (ev) {
                 this.player_.trigger(pluginInstanceRef.state.isOpenSubtitlesOptions ? 'closeSubtitlesPanel' : 'openSubtitlesPanel', !ev.screenX && !ev.screenY);
               };
-              videojs.registerComponent('SubtitlesToggle', videojs.extend(tmp.extend, tmp.methods));
+
+              class SubtitlesToggleCls extends tmp.extend {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(SubtitlesToggleCls.prototype, tmp.methods);
+
+              videojs.registerComponent('SubtitlesToggle', SubtitlesToggleCls);
+
             }
             if (args.enabledSettingsPanel) {
               tmp = composeCustomComp(videojsComponentButton, 'vjs-settings-control vjs-icon-cog');
               tmp.methods.handleClick = function (ev) {
                 this.player_.trigger(pluginInstanceRef.state.isOpenSettingsOptions ? 'closeSettingsPanel' : 'openSettingsPanel', !ev.screenX && !ev.screenY);
               };
-              videojs.registerComponent('SettingsToggle', videojs.extend(tmp.extend, tmp.methods));
+
+              class SettingsToggleCls extends tmp.extend {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(SettingsToggleCls.prototype, tmp.methods);
+
+              videojs.registerComponent('SettingsToggle', SettingsToggleCls);
+
             }
             if (args.options.controlBar.theaterMode) {
               tmp = composeCustomComp(videojsComponentButton, 'vjs-theater-mode-control');
@@ -852,7 +1422,17 @@
               tmp.methods.updateControlText = function () {
                 this.controlText(this.player_.localize(pluginInstanceRef.isTheaterMode() ? 'Default mode' : 'Theater mode'));
               };
-              videojs.registerComponent('TheaterModeToggle', videojs.extend(tmp.extend, tmp.methods));
+              class TheaterModeToggleCls extends tmp.extend {
+                constructor(player, options) {
+                  super(player, options);
+                }
+              }
+
+              Object.assign(TheaterModeToggleCls.prototype, tmp.methods);
+
+              videojs.registerComponent('TheaterModeToggle', TheaterModeToggleCls);
+
+
             }
             break;
         }

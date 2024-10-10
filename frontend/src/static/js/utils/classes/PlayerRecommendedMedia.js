@@ -301,13 +301,19 @@ export function PlayerRecommendedMedia(itemsData, inEmbed, hideViews) {
   }
 
   function updateWrapperParentStyle() {
+
+
     switch (state.displayType) {
       case 'full':
-        domElems.wrapper.parentNode.style.top = '';
+        if (domElems.wrapper && domElems.wrapper.parentNode) {
+          domElems.wrapper.parentNode.style.top = '';
+        }
         break;
       case 'inline-small':
       case 'inline':
-        domElems.wrapper.parentNode.style.top = 'auto';
+        if (domElems.wrapper && domElems.wrapper.parentNode) {
+          domElems.wrapper.parentNode.style.top = 'auto';
+        }
         break;
     }
   }
